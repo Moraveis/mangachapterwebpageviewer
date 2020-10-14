@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -71,9 +72,22 @@ public class CreateHTMLPageManga {
             StringBuffer imgBlock = new StringBuffer();
             List<String> list = (List<String>) mapper.get("images");
 
-            list.stream().forEach(image -> {
-                imgBlock.append("<p class='image'><img src='" + image + "'/></p>");
-            });
+            list.stream()
+                .filter(image -> !image.toLowerCase().contains("ch"))
+                .sorted(new Comparator<String>() {
+                    @Override
+                    public int compare(String o1, String o2) {
+                        return extractInt(o1) - extractInt(o2);
+                    }
+
+                    int extractInt(String s) {
+                        String num = s.substring(0, s.indexOf('.'));
+                        return Integer.parseInt(num);
+                    }
+                })
+                .forEach(image -> {
+                    imgBlock.append("<p class='image'><img src='" + image + "'/></p>");
+                });
 
             content = content.replace("${mangaImages}", imgBlock.toString());
 
